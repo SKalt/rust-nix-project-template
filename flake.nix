@@ -2,8 +2,8 @@
   description = ""; # FIXME: add a description
   inputs = {
     flake-utils.url = "github:numtide/flake-utils"; # TODO: pin
-    rust-overlay.url = "github:oxalica/rust-overlay"; # TODO: pin
-    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    rust-overlay.url = "github:oxalica/rust-overlay"; # TODO: pin; share flake-utils and nixpkgs
+    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable"; # TODO: pin
   };
 
   outputs = { self, flake-utils, nixpkgs, rust-overlay }:
@@ -16,8 +16,8 @@
         # Generate a user-friendly version number.
         version = builtins.substring 0 8 self.lastModifiedDate;
         rust_toolchain = pkgs.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
-
         info = (builtins.fromTOML (builtins.readFile ./Cargo.toml));
+        filters = import ./nix/filter_filesets.nix { inherit (pkgs) lib; };
       in
       {
         packages = {
@@ -26,12 +26,15 @@
             # https://nixos.org/manual/nixpkgs/stable/#compiling-rust-applications-with-cargo
             inherit version;
             pname = info.package.name;
-            src = ./.; # TODO: narrow
-              cargoLock = {
-                lockFile = ./Cargo.lock;
-              };
-            # see https://johns.codes/blog/efficient-nix-derivations-with-file-sets
-            # see https://github.com/JRMurr/roc2nix/blob/main/lib/languageFilters.nix
+            src = pkgs.lib.fileset.toSource {
+              root = ./. ;
+              fileset = filters.rust ./. ;
+              # ^ see https://johns.codes/blog/efficient-nix-derivations-with-file-sets
+              # see https://github.com/JRMurr/roc2nix/blob/main/lib/languageFilters.nix
+            };
+            cargoLock = {
+              lockFile = ./Cargo.lock;
+            };
             nativeBuildInputs = [ rust_toolchain ];
           };
         };
