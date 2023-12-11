@@ -1,9 +1,13 @@
 {
   description = ""; # FIXME: add a description
   inputs = {
-    flake-utils.url = "github:numtide/flake-utils"; # TODO: pin
-    rust-overlay.url = "github:oxalica/rust-overlay"; # TODO: pin; share flake-utils and nixpkgs
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable"; # TODO: pin
+    flake-utils.url = "github:numtide/flake-utils"; # TODO: pin
+    rust-overlay = {
+      url = "github:oxalica/rust-overlay"; # TODO: pin;
+      inputs.flake-utils.follows = "flake-utils";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = { self, flake-utils, nixpkgs, rust-overlay }:
