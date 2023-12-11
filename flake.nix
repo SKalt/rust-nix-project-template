@@ -49,7 +49,6 @@
             [
               # rust tools
               rust-analyzer-unwrapped
-              rustfmt
               cargo-bloat
 
               # nix support
